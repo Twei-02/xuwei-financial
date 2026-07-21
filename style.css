@@ -674,6 +674,19 @@ body {
   font-size: 13.5px;
 }
 
+.goal-form-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr auto;
+  gap: 12px;
+  align-items: end;
+}
+
+.goal-form-submit {
+  width: auto;
+  padding: 11px 20px;
+  white-space: nowrap;
+}
+
 /* ---------- Footer ---------- */
 
 .footer-note {
@@ -681,4 +694,166 @@ body {
   color: var(--text-400);
   font-size: 12px;
   margin-top: 40px;
+}
+
+/* ============================================================
+   MOBILE
+   ============================================================ */
+
+@media (max-width: 640px) {
+  body { font-size: 14.5px; }
+
+  /* Nav: brand on its own row, tabs scroll horizontally under it */
+  .topbar-inner {
+    padding: 16px 16px 0;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+  }
+
+  .brand {
+    padding-bottom: 12px;
+  }
+
+  .tabs {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    gap: 2px;
+    margin: 0 -16px;
+    padding: 0 16px;
+  }
+
+  .tabs::-webkit-scrollbar { display: none; }
+
+  .tab {
+    white-space: nowrap;
+    font-size: 11.5px;
+    padding: 10px 12px;
+  }
+
+  .backup-bar-inner {
+    padding: 8px 16px;
+    justify-content: center;
+  }
+
+  .backup-btn {
+    flex: 1;
+    justify-content: center;
+    font-size: 11px;
+  }
+
+  /* Shell & type scale */
+  .shell {
+    padding: 22px 16px 60px;
+  }
+
+  .page-title {
+    font-size: 22px;
+  }
+
+  .page-lede {
+    font-size: 13.5px;
+    margin-bottom: 20px;
+  }
+
+  .month-picker {
+    flex-wrap: wrap;
+  }
+
+  .month-picker input {
+    flex: 1;
+    min-width: 0;
+  }
+
+  /* Receipt card */
+  .receipt {
+    padding: 22px 18px 18px;
+  }
+
+  .receipt-balance-figure {
+    font-size: 26px;
+  }
+
+  .receipt-row {
+    flex-wrap: wrap;
+    gap: 4px 12px;
+  }
+
+  /* Cards & forms */
+  .card {
+    padding: 18px 16px;
+  }
+
+  .card-title {
+    font-size: 15.5px;
+  }
+
+  .field input,
+  .field select {
+    font-size: 16px; /* prevents iOS auto-zoom on focus */
+    padding: 10px 11px;
+  }
+
+  .radio-row label {
+    font-size: 11.5px;
+    padding: 8px 4px;
+  }
+
+  /* Goal form: stack to a single column on phones */
+  .goal-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .goal-form-submit {
+    width: 100%;
+  }
+
+  .goal-grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .goal-card {
+    padding: 18px;
+  }
+
+  .goal-stats {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  /* Ledger rows */
+  .ledger-item {
+    grid-template-columns: 1fr auto auto;
+    gap: 8px;
+    padding: 10px 0;
+  }
+
+  .ledger-category {
+    font-size: 13.5px;
+  }
+
+  .ledger-amount {
+    font-size: 13.5px;
+  }
+
+  /* Daily view entries */
+  .day-entry {
+    flex-wrap: wrap;
+    font-size: 12.5px;
+  }
+
+  .month-summary-strip {
+    gap: 16px;
+  }
+
+  .month-summary-strip .stat-value {
+    font-size: 14.5px;
+  }
+}
+
+@media (max-width: 380px) {
+  .radio-row label span { display: inline-block; }
+  .tab { font-size: 10.5px; padding: 9px 10px; }
 }

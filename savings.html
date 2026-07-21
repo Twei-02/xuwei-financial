@@ -19,8 +19,8 @@
       <span class="brand-sub">Personal finance</span>
     </div>
     <nav class="tabs">
-      <a class="tab" href="index.html">Monthly Ledger</a>
-      <a class="tab" href="daily.html">Daily View</a>
+      <a class="tab" href="index.html">Monthly Budget</a>
+      <a class="tab" href="daily.html">Daily Spending</a>
       <a class="tab active" href="savings.html">Savings Goals</a>
     </nav>
   </div>
@@ -39,7 +39,7 @@
 
   <div class="card" style="margin-bottom:28px">
     <h2 class="card-title">Add a goal</h2>
-    <form id="goal-form" style="display:grid; grid-template-columns:2fr 1fr 1fr 1fr auto; gap:12px; align-items:end;">
+    <form id="goal-form" class="goal-form-grid">
       <div class="field" style="margin-bottom:0">
         <label for="goal-name">Goal name</label>
         <input type="text" id="goal-name" placeholder="e.g. Emergency fund" required />
@@ -56,7 +56,7 @@
         <label for="goal-deadline">Target date</label>
         <input type="date" id="goal-deadline" required />
       </div>
-      <button type="submit" class="btn" style="width:auto; padding:10px 20px;">+ Add goal</button>
+      <button type="submit" class="btn goal-form-submit">+ Add goal</button>
     </form>
   </div>
 
