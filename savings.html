@@ -20,8 +20,16 @@
     </div>
     <nav class="tabs">
       <a class="tab" href="index.html">Monthly Ledger</a>
+      <a class="tab" href="daily.html">Daily View</a>
       <a class="tab active" href="savings.html">Savings Goals</a>
     </nav>
+  </div>
+  <div class="backup-bar">
+    <div class="backup-bar-inner">
+      <button class="backup-btn" id="export-btn">↓ Export backup</button>
+      <button class="backup-btn" id="import-btn">↑ Import backup</button>
+      <input type="file" id="import-input" accept="application/json" hidden />
+    </div>
   </div>
 </header>
 

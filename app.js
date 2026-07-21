@@ -299,6 +299,161 @@ function initGoalsPage() {
   render();
 }
 
+/* ============================================================
+   DAILY VIEW PAGE (daily.html)
+   ============================================================ */
+
+function initDailyPage() {
+  const monthInput = document.getElementById("daily-month-select");
+  if (!monthInput) return; // not on this page
+
+  const container = document.getElementById("daily-list");
+  const hideEmptyToggle = document.getElementById("hide-empty-days");
+  const sumIncome = document.getElementById("daily-sum-income");
+  const sumExpense = document.getElementById("daily-sum-expense");
+  const sumBalance = document.getElementById("daily-sum-balance");
+
+  monthInput.value = currentMonthKey();
+
+  monthInput.addEventListener("change", render);
+  hideEmptyToggle.addEventListener("change", render);
+
+  const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+  function render() {
+    const monthKey = monthInput.value || currentMonthKey();
+    const [y, m] = monthKey.split("-").map(Number);
+    const daysInMonth = new Date(y, m, 0).getDate();
+
+    const all = loadTransactions().filter((t) => t.date.startsWith(monthKey));
+
+    // === FORMULA: group all entries by exact date ===
+    const byDate = {};
+    all.forEach((t) => {
+      (byDate[t.date] = byDate[t.date] || []).push(t);
+    });
+
+    // month totals, same formulas as the ledger page
+    const totalIncome = all.filter((t) => t.type === "income").reduce((s, t) => s + t.amount, 0);
+    const totalExpense = all.filter((t) => t.type === "expense").reduce((s, t) => s + t.amount, 0);
+    sumIncome.textContent = fmt(totalIncome);
+    sumExpense.textContent = fmt(totalExpense);
+    sumBalance.textContent = fmt(totalIncome - totalExpense);
+
+    container.innerHTML = "";
+    const hideEmpty = hideEmptyToggle.checked;
+
+    for (let day = daysInMonth; day >= 1; day--) {
+      const dateStr = `${monthKey}-${String(day).padStart(2, "0")}`;
+      const entries = (byDate[dateStr] || []).slice().sort((a, b) => (a.type < b.type ? 1 : -1));
+
+      if (entries.length === 0 && hideEmpty) continue;
+
+      // === FORMULA: daily net = SUM(income) - SUM(expense) for that date ===
+      const dayIncome = entries.filter((t) => t.type === "income").reduce((s, t) => s + t.amount, 0);
+      const dayExpense = entries.filter((t) => t.type === "expense").reduce((s, t) => s + t.amount, 0);
+      const dayNet = dayIncome - dayExpense;
+      const netClass = dayNet > 0 ? "positive" : dayNet < 0 ? "negative" : "zero";
+
+      const weekday = WEEKDAYS[new Date(dateStr + "T00:00:00").getDay()];
+
+      const block = document.createElement("div");
+      block.className = "day-block";
+      block.innerHTML = `
+        <div class="day-head">
+          <span><span class="day-date">${dateStr}</span><span class="day-weekday">${weekday}</span></span>
+          <span class="day-total ${netClass}">${entries.length ? fmt(dayNet) : "—"}</span>
+        </div>
+      `;
+
+      if (entries.length > 0) {
+        const list = document.createElement("div");
+        list.className = "day-entries";
+        entries.forEach((t) => {
+          const row = document.createElement("div");
+          row.className = "day-entry";
+          row.innerHTML = `
+            <span>${escapeHtml(t.category)}${t.note ? " · " + escapeHtml(t.note) : ""}</span>
+            <span class="amt ${t.type}">${t.type === "expense" ? "-" : "+"}${fmt(t.amount)}</span>
+          `;
+          list.appendChild(row);
+        });
+        block.appendChild(list);
+      }
+
+      container.appendChild(block);
+    }
+
+    if (container.children.length === 0) {
+      container.innerHTML = '<p class="empty-state">No entries this month.</p>';
+    }
+  }
+
+  render();
+}
+
+/* ============================================================
+   BACKUP — export / import all data as a single JSON file
+   ============================================================ */
+
+function initBackupBar() {
+  const exportBtn = document.getElementById("export-btn");
+  const importBtn = document.getElementById("import-btn");
+  const importInput = document.getElementById("import-input");
+  if (!exportBtn) return; // not on this page
+
+  exportBtn.addEventListener("click", () => {
+    const payload = {
+      exportedAt: new Date().toISOString(),
+      transactions: loadTransactions(),
+      goals: loadGoals(),
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    const today = new Date().toISOString().slice(0, 10);
+    a.href = url;
+    a.download = `ledger-backup-${today}.json`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  });
+
+  importBtn.addEventListener("click", () => importInput.click());
+
+  importInput.addEventListener("change", () => {
+    const file = importInput.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      let data;
+      try {
+        data = JSON.parse(reader.result);
+      } catch {
+        alert("That file isn't valid JSON — nothing was changed.");
+        return;
+      }
+      if (!Array.isArray(data.transactions) && !Array.isArray(data.goals)) {
+        alert("That file doesn't look like a Ledger backup — nothing was changed.");
+        return;
+      }
+      const ok = confirm(
+        "This will REPLACE all current entries and goals in this browser with the contents of the file. This can't be undone. Continue?"
+      );
+      if (!ok) return;
+
+      if (Array.isArray(data.transactions)) saveTransactions(data.transactions);
+      if (Array.isArray(data.goals)) saveGoals(data.goals);
+      alert("Backup restored.");
+      location.reload();
+    };
+    reader.readAsText(file);
+    importInput.value = "";
+  });
+}
+
 /* ---------- utils ---------- */
 
 function escapeHtml(str) {
@@ -310,4 +465,6 @@ function escapeHtml(str) {
 document.addEventListener("DOMContentLoaded", () => {
   initBudgetPage();
   initGoalsPage();
+  initDailyPage();
+  initBackupBar();
 });

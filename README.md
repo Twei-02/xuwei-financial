@@ -5,16 +5,20 @@ A small, self-hosted web app for tracking flexible monthly income/expenses and s
 ## What's inside
 
 - `index.html` — the monthly ledger: add income or expenses under any category you like, see totals, balance, and a spend breakdown.
+- `daily.html` — browse any month day by day, with each day's entries and net total.
 - `savings.html` — savings goals: add as many goals as you want, each with its own target date. Shows % achieved, how much is still needed, and how much to save per month to hit the deadline.
 - `style.css` — all styling.
 - `app.js` — all the logic and formulas (well-commented — search for `FORMULA` to see every calculation).
 
-All data is saved in your browser's `localStorage`. It stays on whichever device/browser you use the site from — there's no server and no sync between devices.
+All data is saved in your browser's `localStorage`. It stays on whichever device/browser you use the site from — there's no server and no sync between devices. **Because of that, use "Export backup" regularly** — every page has an "↓ Export backup" / "↑ Import backup" bar right under the top navigation:
+
+- **Export backup** downloads a single `ledger-backup-YYYY-MM-DD.json` file with every entry and goal — keep these somewhere safe (email to yourself, cloud drive, etc.).
+- **Import backup** lets you pick one of those JSON files back in. It fully replaces whatever is currently in the browser, so use it to restore on a new device or after clearing browser data.
 
 ## Deploying to GitHub Pages
 
 1. Create a new repository on GitHub (e.g. `ledger`).
-2. Upload these four files (`index.html`, `savings.html`, `style.css`, `app.js`) to the root of the repository.
+2. Upload these five files (`index.html`, `daily.html`, `savings.html`, `style.css`, `app.js`) to the root of the repository.
 3. Go to **Settings → Pages** in your repository.
 4. Under **Build and deployment**, set **Source** to `Deploy from a branch`.
 5. Choose the `main` branch and `/ (root)` folder, then click **Save**.

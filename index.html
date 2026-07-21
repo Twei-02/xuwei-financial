@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Financial Tracker</title>
+<title>Ledger — Monthly Budget</title>
 <meta name="description" content="A simple, self-hosted monthly budget tracker with flexible income and expenses." />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -15,20 +15,28 @@
 <header class="topbar">
   <div class="topbar-inner">
     <div class="brand">
-      <span class="brand-mark">Xuwei's</span>
-      <span class="brand-sub">Financial Tracker</span>
+      <span class="brand-mark">Ledger</span>
+      <span class="brand-sub">Personal finance</span>
     </div>
     <nav class="tabs">
       <a class="tab active" href="index.html">Monthly Ledger</a>
+      <a class="tab" href="daily.html">Daily View</a>
       <a class="tab" href="savings.html">Savings Goals</a>
     </nav>
   </div>
+  <div class="backup-bar">
+    <div class="backup-bar-inner">
+      <button class="backup-btn" id="export-btn">↓ Export backup</button>
+      <button class="backup-btn" id="import-btn">↑ Import backup</button>
+      <input type="file" id="import-input" accept="application/json" hidden />
+    </div>
+  </div>
 </header>
-  
+
 <main class="shell">
-  <h1 class="page-title"></h1>
-  <p class="page-lede"></p>
-  
+  <h1 class="page-title">This month, on paper</h1>
+  <p class="page-lede">Log income and expenses as they happen. No fixed categories — add whatever fits your month.</p>
+
   <div class="month-picker">
     <label for="month-select" class="receipt-label">Viewing</label>
     <input type="month" id="month-select" />

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Ledger — Daily View</title>
+<meta name="description" content="Browse any month day by day to see exactly what was logged." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <span class="brand-mark">Ledger</span>
+      <span class="brand-sub">Personal finance</span>
+    </div>
+    <nav class="tabs">
+      <a class="tab" href="index.html">Monthly Ledger</a>
+      <a class="tab active" href="daily.html">Daily View</a>
+      <a class="tab" href="savings.html">Savings Goals</a>
+    </nav>
+  </div>
+  <div class="backup-bar">
+    <div class="backup-bar-inner">
+      <button class="backup-btn" id="export-btn">↓ Export backup</button>
+      <button class="backup-btn" id="import-btn">↑ Import backup</button>
+      <input type="file" id="import-input" accept="application/json" hidden />
+    </div>
+  </div>
+</header>
+
+<main class="shell">
+  <h1 class="page-title">Day by day</h1>
+  <p class="page-lede">Pick a month to see exactly what was logged on each day — June, July, or any month you've kept records for.</p>
+
+  <div class="month-picker">
+    <label for="daily-month-select" class="receipt-label">Viewing</label>
+    <input type="month" id="daily-month-select" />
+  </div>
+
+  <div class="month-summary-strip">
+    <div>
+      <div class="stat-label">Income</div>
+      <div class="stat-value" id="daily-sum-income" style="color:var(--green-600)">RM 0.00</div>
+    </div>
+    <div>
+      <div class="stat-label">Expenses</div>
+      <div class="stat-value" id="daily-sum-expense" style="color:var(--brick-600)">RM 0.00</div>
+    </div>
+    <div>
+      <div class="stat-label">Balance</div>
+      <div class="stat-value" id="daily-sum-balance">RM 0.00</div>
+    </div>
+  </div>
+
+  <label class="toggle-row">
+    <input type="checkbox" id="hide-empty-days" checked />
+    Hide days with no entries
+  </label>
+
+  <div class="card">
+    <div id="daily-list"></div>
+  </div>
+
+  <p class="footer-note">Everything is stored locally in this browser. Use "Export backup" above to keep a copy of your data.</p>
+</main>
+
+<script src="app.js"></script>
+</body>
+</html>
