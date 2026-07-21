@@ -1,0 +1,515 @@
+/* ============================================================
+   LEDGER — a personal finance tracker
+   Design tokens
+   ============================================================ */
+
+:root {
+  /* Color */
+  --ink-900: #16241f;
+  --ink-800: #1d2f28;
+  --ink-700: #2c3b34;
+  --paper-50: #eceee6;
+  --paper-0: #f8f9f3;
+  --card: #ffffff;
+  --line: #d8d9cc;
+  --gold-500: #c89b3c;
+  --gold-600: #a97f2b;
+  --green-600: #3f7d58;
+  --green-100: #e3ede6;
+  --brick-600: #a8443c;
+  --brick-100: #f3e2df;
+  --text-900: #1a201c;
+  --text-600: #5c6660;
+  --text-400: #8b938c;
+
+  /* Type */
+  --font-display: "Fraunces", Georgia, serif;
+  --font-body: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: "IBM Plex Mono", "Courier New", monospace;
+
+  /* Layout */
+  --radius: 10px;
+  --shadow-card: 0 1px 2px rgba(22, 36, 31, 0.06), 0 8px 24px rgba(22, 36, 31, 0.08);
+  --max-width: 960px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+* { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  margin: 0;
+  background: var(--paper-50);
+  color: var(--text-900);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection { background: var(--gold-500); color: var(--ink-900); }
+
+:focus-visible {
+  outline: 2px solid var(--gold-600);
+  outline-offset: 2px;
+}
+
+/* ---------- Nav ---------- */
+
+.topbar {
+  background: var(--ink-900);
+  color: var(--paper-0);
+}
+
+.topbar-inner {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 22px 20px 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.brand {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding-bottom: 18px;
+}
+
+.brand-mark {
+  font-family: var(--font-display);
+  font-size: 26px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.brand-sub {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gold-500);
+}
+
+.tabs {
+  display: flex;
+  gap: 4px;
+}
+
+.tab {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgba(248, 249, 243, 0.65);
+  text-decoration: none;
+  padding: 10px 16px;
+  border-bottom: 2px solid transparent;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.tab:hover { color: var(--paper-0); }
+
+.tab.active {
+  color: var(--paper-0);
+  border-bottom-color: var(--gold-500);
+}
+
+/* ---------- Shell ---------- */
+
+.shell {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 32px 20px 80px;
+}
+
+.page-title {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 600;
+  margin: 4px 0 4px;
+}
+
+.page-lede {
+  color: var(--text-600);
+  margin: 0 0 28px;
+  max-width: 56ch;
+}
+
+/* ---------- Receipt / ledger card (signature element) ---------- */
+
+.receipt {
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
+  position: relative;
+  padding: 28px 28px 24px;
+  margin-bottom: 28px;
+}
+
+.receipt::before {
+  content: "";
+  position: absolute;
+  top: -7px;
+  left: 0;
+  right: 0;
+  height: 14px;
+  background-image: radial-gradient(circle 7px at 10px 7px, var(--paper-50) 7px, transparent 7.5px);
+  background-size: 20px 14px;
+  background-repeat: repeat-x;
+}
+
+.receipt-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+}
+
+.receipt-row + .receipt-row { margin-top: 14px; }
+
+.receipt-divider {
+  border: none;
+  border-top: 1px dashed var(--line);
+  margin: 16px 0;
+}
+
+.receipt-label {
+  font-size: 13px;
+  color: var(--text-600);
+}
+
+.receipt-figure {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 16px;
+}
+
+.receipt-figure.income { color: var(--green-600); }
+.receipt-figure.expense { color: var(--brick-600); }
+
+.receipt-balance-label {
+  font-family: var(--font-display);
+  font-size: 15px;
+  color: var(--text-900);
+}
+
+.receipt-balance-figure {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 34px;
+  font-weight: 600;
+}
+
+.receipt-balance-figure.positive { color: var(--green-600); }
+.receipt-balance-figure.negative { color: var(--brick-600); }
+
+/* ---------- Grid layout ---------- */
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+@media (max-width: 760px) {
+  .grid-2 { grid-template-columns: 1fr; }
+}
+
+.card {
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
+  padding: 22px;
+}
+
+.card-title {
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 600;
+  margin: 0 0 16px;
+}
+
+/* ---------- Forms ---------- */
+
+.field { margin-bottom: 14px; }
+
+.field label {
+  display: block;
+  font-size: 12.5px;
+  color: var(--text-600);
+  margin-bottom: 6px;
+}
+
+.field input,
+.field select {
+  width: 100%;
+  padding: 9px 11px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--paper-0);
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--text-900);
+}
+
+.field input:focus,
+.field select:focus {
+  border-color: var(--gold-600);
+}
+
+.radio-row {
+  display: flex;
+  gap: 8px;
+}
+
+.radio-row label {
+  flex: 1;
+  text-align: center;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  font-size: 13px;
+  cursor: pointer;
+  color: var(--text-600);
+  transition: all 0.12s ease;
+}
+
+.radio-row input { display: none; }
+
+.radio-row input:checked + span { font-weight: 600; }
+
+.radio-row label:has(input:checked)[data-kind="income"] {
+  background: var(--green-100);
+  border-color: var(--green-600);
+  color: var(--green-600);
+}
+
+.radio-row label:has(input:checked)[data-kind="expense"] {
+  background: var(--brick-100);
+  border-color: var(--brick-600);
+  color: var(--brick-600);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  padding: 10px 16px;
+  border-radius: 7px;
+  border: none;
+  background: var(--ink-900);
+  color: var(--paper-0);
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.05s ease;
+}
+
+.btn:hover { background: var(--ink-700); }
+.btn:active { transform: translateY(1px); }
+
+.btn-ghost {
+  background: transparent;
+  color: var(--text-600);
+  border: 1px solid var(--line);
+}
+
+.btn-ghost:hover { background: var(--paper-50); color: var(--text-900); }
+
+/* ---------- Ledger list ---------- */
+
+.ledger-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.ledger-item {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.ledger-item:last-child { border-bottom: none; }
+
+.ledger-main {
+  min-width: 0;
+}
+
+.ledger-category {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.ledger-meta {
+  font-size: 12px;
+  color: var(--text-400);
+  font-family: var(--font-mono);
+}
+
+.ledger-amount {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 14.5px;
+  white-space: nowrap;
+}
+
+.ledger-amount.income { color: var(--green-600); }
+.ledger-amount.expense { color: var(--brick-600); }
+
+.ledger-delete {
+  background: none;
+  border: none;
+  color: var(--text-400);
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  padding: 4px 6px;
+  border-radius: 5px;
+}
+
+.ledger-delete:hover { color: var(--brick-600); background: var(--brick-100); }
+
+.empty-state {
+  text-align: center;
+  padding: 32px 16px;
+  color: var(--text-400);
+  font-size: 13.5px;
+}
+
+/* ---------- Breakdown bars ---------- */
+
+.bar-row { margin-bottom: 12px; }
+
+.bar-row:last-child { margin-bottom: 0; }
+
+.bar-label-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  margin-bottom: 5px;
+}
+
+.bar-label-row .amt {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-600);
+}
+
+.bar-track {
+  height: 7px;
+  background: var(--paper-50);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.bar-fill {
+  height: 100%;
+  background: var(--gold-500);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+/* ---------- Goal jars ---------- */
+
+.goal-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 20px;
+}
+
+.goal-card {
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
+  padding: 22px;
+  position: relative;
+}
+
+.goal-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 14px;
+}
+
+.goal-name {
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.goal-jar {
+  height: 12px;
+  background: var(--paper-50);
+  border-radius: 6px;
+  overflow: hidden;
+  margin: 12px 0 14px;
+  border: 1px solid var(--line);
+}
+
+.goal-jar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--gold-500), var(--green-600));
+  transition: width 0.4s ease;
+}
+
+.goal-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 16px;
+  font-size: 12.5px;
+}
+
+.goal-stat-label { color: var(--text-400); margin-bottom: 2px; }
+
+.goal-stat-value {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 14px;
+}
+
+/* ---------- Month picker ---------- */
+
+.month-picker {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 24px;
+}
+
+.month-picker input {
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--card);
+  font-family: var(--font-mono);
+  font-size: 13.5px;
+}
+
+/* ---------- Footer ---------- */
+
+.footer-note {
+  text-align: center;
+  color: var(--text-400);
+  font-size: 12px;
+  margin-top: 40px;
+}

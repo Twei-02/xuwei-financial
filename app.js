@@ -1,0 +1,313 @@
+/* ============================================================
+   LEDGER — app.js
+   All data lives in the browser's localStorage, so it stays on
+   whichever device/browser you use the site from. No server,
+   no account — open source and easy to self-host on GitHub Pages.
+   ============================================================ */
+
+const STORE_KEY = "ledger_transactions_v1";
+const GOALS_KEY = "ledger_goals_v1";
+
+/* ---------- storage helpers ---------- */
+
+function loadTransactions() {
+  try {
+    return JSON.parse(localStorage.getItem(STORE_KEY)) || [];
+  } catch {
+    return [];
+  }
+}
+
+function saveTransactions(list) {
+  localStorage.setItem(STORE_KEY, JSON.stringify(list));
+}
+
+function loadGoals() {
+  try {
+    return JSON.parse(localStorage.getItem(GOALS_KEY)) || [];
+  } catch {
+    return [];
+  }
+}
+
+function saveGoals(list) {
+  localStorage.setItem(GOALS_KEY, JSON.stringify(list));
+}
+
+function uid() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+}
+
+function fmt(amount) {
+  const n = Number(amount) || 0;
+  const sign = n < 0 ? "-" : "";
+  return sign + "RM " + Math.abs(n).toLocaleString("en-MY", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function currentMonthKey(d = new Date()) {
+  return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0");
+}
+
+/* ============================================================
+   BUDGET PAGE (index.html)
+   ============================================================ */
+
+function initBudgetPage() {
+  const form = document.getElementById("txn-form");
+  if (!form) return; // not on this page
+
+  const monthInput = document.getElementById("month-select");
+  const list = document.getElementById("ledger-list");
+  const incomeFigure = document.getElementById("total-income");
+  const expenseFigure = document.getElementById("total-expense");
+  const balanceFigure = document.getElementById("balance-figure");
+  const breakdown = document.getElementById("category-breakdown");
+  const emptyState = document.getElementById("empty-state");
+  const dailyAvg = document.getElementById("daily-avg");
+  const dailyLeft = document.getElementById("daily-left");
+
+  monthInput.value = currentMonthKey();
+
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const type = form.querySelector('input[name="kind"]:checked').value;
+    const category = document.getElementById("txn-category").value.trim();
+    const amount = parseFloat(document.getElementById("txn-amount").value);
+    const date = document.getElementById("txn-date").value || new Date().toISOString().slice(0, 10);
+    const note = document.getElementById("txn-note").value.trim();
+
+    if (!category || !amount || amount <= 0) return;
+
+    const all = loadTransactions();
+    all.push({ id: uid(), type, category, amount, date, note });
+    saveTransactions(all);
+
+    form.reset();
+    document.getElementById("txn-date").value = date;
+    render();
+  });
+
+  monthInput.addEventListener("change", render);
+
+  list.addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-delete]");
+    if (!btn) return;
+    const all = loadTransactions().filter((t) => t.id !== btn.dataset.delete);
+    saveTransactions(all);
+    render();
+  });
+
+  function render() {
+    const monthKey = monthInput.value || currentMonthKey();
+    const all = loadTransactions().filter((t) => t.date.startsWith(monthKey));
+    all.sort((a, b) => (a.date < b.date ? 1 : -1));
+
+    // === FORMULA: total income = SUM(amount) where type = income ===
+    const totalIncome = all.filter((t) => t.type === "income").reduce((s, t) => s + t.amount, 0);
+    // === FORMULA: total expenses = SUM(amount) where type = expense ===
+    const totalExpense = all.filter((t) => t.type === "expense").reduce((s, t) => s + t.amount, 0);
+    // === FORMULA: balance = total income - total expenses ===
+    const balance = totalIncome - totalExpense;
+
+    incomeFigure.textContent = fmt(totalIncome);
+    expenseFigure.textContent = fmt(totalExpense);
+    balanceFigure.textContent = fmt(balance);
+    balanceFigure.className = "receipt-balance-figure " + (balance >= 0 ? "positive" : "negative");
+
+    // === FORMULA: category totals = GROUP BY category, SUM(amount), for expenses only ===
+    const catTotals = {};
+    all.filter((t) => t.type === "expense").forEach((t) => {
+      catTotals[t.category] = (catTotals[t.category] || 0) + t.amount;
+    });
+    const catEntries = Object.entries(catTotals).sort((a, b) => b[1] - a[1]);
+
+    breakdown.innerHTML = "";
+    if (catEntries.length === 0) {
+      breakdown.innerHTML = '<p class="empty-state">Add an expense to see the breakdown.</p>';
+    } else {
+      catEntries.forEach(([cat, amt]) => {
+        // === FORMULA: category % of total expenses = category total / total expenses ===
+        const pct = totalExpense > 0 ? (amt / totalExpense) * 100 : 0;
+        const row = document.createElement("div");
+        row.className = "bar-row";
+        row.innerHTML = `
+          <div class="bar-label-row">
+            <span>${escapeHtml(cat)}</span>
+            <span class="amt">${fmt(amt)} · ${pct.toFixed(0)}%</span>
+          </div>
+          <div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div>
+        `;
+        breakdown.appendChild(row);
+      });
+    }
+
+    // === FORMULA: days elapsed / days in month, for a daily-average read ===
+    const [y, m] = monthKey.split("-").map(Number);
+    const daysInMonth = new Date(y, m, 0).getDate();
+    const today = new Date();
+    const isCurrentMonth = currentMonthKey(today) === monthKey;
+    const daysElapsed = isCurrentMonth ? today.getDate() : daysInMonth;
+    const daysRemaining = Math.max(daysInMonth - daysElapsed, 1);
+
+    // === FORMULA: average daily spend so far = total expenses / days elapsed ===
+    const avgDaily = totalExpense / daysElapsed;
+    // === FORMULA: suggested daily spend for the rest of the month = remaining balance / days remaining ===
+    const suggestedDaily = isCurrentMonth ? balance / daysRemaining : null;
+
+    dailyAvg.textContent = fmt(avgDaily) + " / day so far";
+    dailyLeft.textContent = isCurrentMonth
+      ? fmt(suggestedDaily) + " / day for the " + daysRemaining + " day(s) left"
+      : "Not the current month";
+
+    // list
+    list.innerHTML = "";
+    if (all.length === 0) {
+      emptyState.style.display = "block";
+    } else {
+      emptyState.style.display = "none";
+      all.forEach((t) => {
+        const li = document.createElement("li");
+        li.className = "ledger-item";
+        li.innerHTML = `
+          <div class="ledger-main">
+            <div class="ledger-category">${escapeHtml(t.category)}</div>
+            <div class="ledger-meta">${t.date}${t.note ? " · " + escapeHtml(t.note) : ""}</div>
+          </div>
+          <div class="ledger-amount ${t.type}">${t.type === "expense" ? "-" : "+"}${fmt(t.amount)}</div>
+          <button class="ledger-delete" data-delete="${t.id}" aria-label="Delete entry" title="Delete">✕</button>
+        `;
+        list.appendChild(li);
+      });
+    }
+  }
+
+  render();
+}
+
+/* ============================================================
+   SAVINGS GOALS PAGE (savings.html)
+   ============================================================ */
+
+function initGoalsPage() {
+  const form = document.getElementById("goal-form");
+  if (!form) return; // not on this page
+
+  const grid = document.getElementById("goal-grid");
+  const emptyState = document.getElementById("goals-empty");
+
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const name = document.getElementById("goal-name").value.trim();
+    const target = parseFloat(document.getElementById("goal-target").value);
+    const saved = parseFloat(document.getElementById("goal-saved").value) || 0;
+    const deadline = document.getElementById("goal-deadline").value;
+
+    if (!name || !target || target <= 0 || !deadline) return;
+
+    const goals = loadGoals();
+    goals.push({ id: uid(), name, target, saved, deadline });
+    saveGoals(goals);
+    form.reset();
+    render();
+  });
+
+  grid.addEventListener("click", (e) => {
+    const del = e.target.closest("[data-delete-goal]");
+    if (del) {
+      const goals = loadGoals().filter((g) => g.id !== del.dataset.deleteGoal);
+      saveGoals(goals);
+      render();
+      return;
+    }
+    const addBtn = e.target.closest("[data-add-saved]");
+    if (addBtn) {
+      const amount = parseFloat(prompt("Add how much to this goal? (RM)", "0"));
+      if (!amount || amount <= 0) return;
+      const goals = loadGoals();
+      const g = goals.find((g) => g.id === addBtn.dataset.addSaved);
+      if (g) g.saved = (g.saved || 0) + amount;
+      saveGoals(goals);
+      render();
+    }
+  });
+
+  function monthsBetween(from, to) {
+    // === FORMULA: months left = whole calendar months between today and the deadline, rounded up, minimum 1 ===
+    let months = (to.getFullYear() - from.getFullYear()) * 12 + (to.getMonth() - from.getMonth());
+    if (to.getDate() > from.getDate()) months += 1;
+    return Math.max(months, 1);
+  }
+
+  function render() {
+    const goals = loadGoals();
+    grid.innerHTML = "";
+
+    if (goals.length === 0) {
+      emptyState.style.display = "block";
+      return;
+    }
+    emptyState.style.display = "none";
+
+    const today = new Date();
+
+    goals.forEach((g) => {
+      // === FORMULA: % achieved = saved so far / target ===
+      const pct = g.target > 0 ? Math.min(g.saved / g.target, 1) * 100 : 0;
+      // === FORMULA: still need = target - saved (floor at 0) ===
+      const stillNeed = Math.max(g.target - g.saved, 0);
+      const deadlineDate = new Date(g.deadline + "T00:00:00");
+      const monthsLeft = monthsBetween(today, deadlineDate);
+      // === FORMULA: needed per month = still need / months left ===
+      const neededPerMonth = stillNeed / monthsLeft;
+      const reached = g.saved >= g.target;
+
+      const card = document.createElement("div");
+      card.className = "goal-card";
+      card.innerHTML = `
+        <div class="goal-head">
+          <div>
+            <div class="goal-name">${escapeHtml(g.name)}</div>
+            <div class="ledger-meta">by ${g.deadline}</div>
+          </div>
+          <button class="ledger-delete" data-delete-goal="${g.id}" aria-label="Delete goal" title="Delete">✕</button>
+        </div>
+        <div class="goal-jar"><div class="goal-jar-fill" style="width:${pct}%"></div></div>
+        <div class="goal-stats">
+          <div>
+            <div class="goal-stat-label">Saved / Target</div>
+            <div class="goal-stat-value">${fmt(g.saved)} / ${fmt(g.target)}</div>
+          </div>
+          <div>
+            <div class="goal-stat-label">% Achieved</div>
+            <div class="goal-stat-value">${pct.toFixed(1)}%</div>
+          </div>
+          <div>
+            <div class="goal-stat-label">Still Need</div>
+            <div class="goal-stat-value">${fmt(stillNeed)}</div>
+          </div>
+          <div>
+            <div class="goal-stat-label">${reached ? "Reached 🎉" : "Needed / Month"}</div>
+            <div class="goal-stat-value">${reached ? "—" : fmt(neededPerMonth)}</div>
+          </div>
+        </div>
+        <button class="btn btn-ghost" style="margin-top:14px" data-add-saved="${g.id}">+ Add to savings</button>
+      `;
+      grid.appendChild(card);
+    });
+  }
+
+  render();
+}
+
+/* ---------- utils ---------- */
+
+function escapeHtml(str) {
+  const div = document.createElement("div");
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  initBudgetPage();
+  initGoalsPage();
+});

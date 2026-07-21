@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Ledger — Savings Goals</title>
+<meta name="description" content="Track flexible savings goals with live progress and monthly targets." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <span class="brand-mark">Ledger</span>
+      <span class="brand-sub">Personal finance</span>
+    </div>
+    <nav class="tabs">
+      <a class="tab" href="index.html">Monthly Ledger</a>
+      <a class="tab active" href="savings.html">Savings Goals</a>
+    </nav>
+  </div>
+</header>
+
+<main class="shell">
+  <h1 class="page-title">What you're saving toward</h1>
+  <p class="page-lede">Add as many goals as you like. Each one tracks progress, what's still needed, and how much to set aside per month to hit your own deadline.</p>
+
+  <div class="card" style="margin-bottom:28px">
+    <h2 class="card-title">Add a goal</h2>
+    <form id="goal-form" style="display:grid; grid-template-columns:2fr 1fr 1fr 1fr auto; gap:12px; align-items:end;">
+      <div class="field" style="margin-bottom:0">
+        <label for="goal-name">Goal name</label>
+        <input type="text" id="goal-name" placeholder="e.g. Emergency fund" required />
+      </div>
+      <div class="field" style="margin-bottom:0">
+        <label for="goal-target">Target (RM)</label>
+        <input type="number" id="goal-target" min="1" step="0.01" placeholder="10000" required />
+      </div>
+      <div class="field" style="margin-bottom:0">
+        <label for="goal-saved">Saved so far (RM)</label>
+        <input type="number" id="goal-saved" min="0" step="0.01" placeholder="0" />
+      </div>
+      <div class="field" style="margin-bottom:0">
+        <label for="goal-deadline">Target date</label>
+        <input type="date" id="goal-deadline" required />
+      </div>
+      <button type="submit" class="btn" style="width:auto; padding:10px 20px;">+ Add goal</button>
+    </form>
+  </div>
+
+  <div class="goal-grid" id="goal-grid"></div>
+  <p class="empty-state" id="goals-empty" style="display:none">No goals yet — add your first one above.</p>
+
+  <p class="footer-note">Everything is stored locally in this browser. Clearing site data will clear your goals.</p>
+</main>
+
+<script src="app.js"></script>
+</body>
+</html>
