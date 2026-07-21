@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Ledger — Daily View</title>
-<meta name="description" content="Browse any month day by day to see exactly what was logged." />
+<title>Ledger — Daily Spending</title>
+<meta name="description" content="Log daily spending and watch it against what's left of the month's budget." />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -19,8 +19,8 @@
       <span class="brand-sub">Personal finance</span>
     </div>
     <nav class="tabs">
-      <a class="tab" href="index.html">Monthly Ledger</a>
-      <a class="tab active" href="daily.html">Daily View</a>
+      <a class="tab" href="index.html">Monthly Budget</a>
+      <a class="tab active" href="daily.html">Daily Spending</a>
       <a class="tab" href="savings.html">Savings Goals</a>
     </nav>
   </div>
@@ -34,36 +34,81 @@
 </header>
 
 <main class="shell">
-  <h1 class="page-title">Day by day</h1>
-  <p class="page-lede">Pick a month to see exactly what was logged on each day — June, July, or any month you've kept records for.</p>
+  <h1 class="page-title">Day to day</h1>
+  <p class="page-lede">Breakfast, lunch, groceries, dinner — log it as it happens and watch it against the daily budget you allocated on the Monthly Budget page.</p>
 
   <div class="month-picker">
     <label for="daily-month-select" class="receipt-label">Viewing</label>
     <input type="month" id="daily-month-select" />
   </div>
 
-  <div class="month-summary-strip">
-    <div>
-      <div class="stat-label">Income</div>
-      <div class="stat-value" id="daily-sum-income" style="color:var(--green-600)">RM 0.00</div>
+  <section class="receipt" aria-label="Daily spending summary">
+    <div class="receipt-row">
+      <span class="receipt-label">Daily budget allocated this month</span>
+      <span class="receipt-figure" id="leftover-budget" style="color:var(--gold-600)">RM 0.00</span>
     </div>
-    <div>
-      <div class="stat-label">Expenses</div>
-      <div class="stat-value" id="daily-sum-expense" style="color:var(--brick-600)">RM 0.00</div>
+    <div class="receipt-row">
+      <span class="receipt-label">Spent so far</span>
+      <span class="receipt-figure expense" id="spent-so-far">RM 0.00</span>
     </div>
-    <div>
-      <div class="stat-label">Balance</div>
-      <div class="stat-value" id="daily-sum-balance">RM 0.00</div>
+    <hr class="receipt-divider" />
+    <div class="receipt-row">
+      <span class="receipt-balance-label">Remaining</span>
+      <span class="receipt-balance-figure positive" id="remaining-figure">RM 0.00</span>
     </div>
-  </div>
+    <hr class="receipt-divider" />
+    <div class="receipt-row">
+      <span class="receipt-label" id="daily-avg">RM 0.00 / day so far</span>
+      <span class="receipt-label" id="daily-suggested">—</span>
+    </div>
+  </section>
 
-  <label class="toggle-row">
-    <input type="checkbox" id="hide-empty-days" checked />
-    Hide days with no entries
-  </label>
+  <div class="grid-2">
+    <div class="card">
+      <h2 class="card-title">Add a daily expense</h2>
+      <form id="daily-form">
+        <div class="field">
+          <label for="daily-category">What was it</label>
+          <input type="text" id="daily-category" placeholder="e.g. Breakfast, Lunch, Groceries" list="daily-suggestions" required />
+          <datalist id="daily-suggestions">
+            <option value="Breakfast"></option>
+            <option value="Lunch"></option>
+            <option value="Dinner"></option>
+            <option value="Groceries"></option>
+            <option value="Coffee"></option>
+            <option value="Snacks"></option>
+            <option value="Petrol"></option>
+            <option value="Parking"></option>
+            <option value="Grab / rideshare"></option>
+            <option value="Entertainment"></option>
+          </datalist>
+        </div>
+        <div class="field">
+          <label for="daily-amount">Amount (RM)</label>
+          <input type="number" id="daily-amount" min="0.01" step="0.01" placeholder="0.00" required />
+        </div>
+        <div class="field">
+          <label for="daily-date">Date</label>
+          <input type="date" id="daily-date" />
+        </div>
+        <div class="field">
+          <label for="daily-note">Note (optional)</label>
+          <input type="text" id="daily-note" placeholder="e.g. with colleagues" />
+        </div>
+        <button type="submit" class="btn">+ Add expense</button>
+      </form>
+    </div>
 
-  <div class="card">
-    <div id="daily-list"></div>
+    <div>
+      <label class="toggle-row">
+        <input type="checkbox" id="hide-empty-days" checked />
+        Hide days with no entries
+      </label>
+      <div class="card">
+        <h2 class="card-title">This month, day by day</h2>
+        <div id="daily-list"></div>
+      </div>
+    </div>
   </div>
 
   <p class="footer-note">Everything is stored locally in this browser. Use "Export backup" above to keep a copy of your data.</p>

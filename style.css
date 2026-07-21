@@ -225,6 +225,13 @@ body {
 .day-entry .amt.income { color: var(--green-600); }
 .day-entry .amt.expense { color: var(--brick-600); }
 
+.day-entry-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
 .toggle-row {
   display: flex;
   align-items: center;
@@ -325,6 +332,7 @@ body {
 
 .receipt-figure.income { color: var(--green-600); }
 .receipt-figure.expense { color: var(--brick-600); }
+.receipt-figure.budget { color: var(--gold-600); }
 
 .receipt-balance-label {
   font-family: var(--font-display);
@@ -427,9 +435,14 @@ body {
   color: #fff;
 }
 
-.radio-row label:has(input:checked)[data-kind="expense"] {
+.radio-row label:has(input:checked)[data-kind="deduction"] {
   background: var(--brick-600);
   color: #fff;
+}
+
+.radio-row label:has(input:checked)[data-kind="budget"] {
+  background: var(--gold-500);
+  color: var(--ink-900);
 }
 
 .btn {
@@ -519,6 +532,7 @@ body {
 
 .ledger-amount.income { color: var(--green-600); }
 .ledger-amount.expense { color: var(--brick-600); }
+.ledger-amount.budget { color: var(--gold-600); }
 
 .ledger-delete {
   display: inline-flex;

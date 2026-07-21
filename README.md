@@ -4,8 +4,8 @@ A small, self-hosted web app for tracking flexible monthly income/expenses and s
 
 ## What's inside
 
-- `index.html` — the monthly ledger: add income or expenses under any category you like, see totals, balance, and a spend breakdown.
-- `daily.html` — browse any month day by day, with each day's entries and net total.
+- `index.html` — the monthly budget: log income (as many sources as you have), then distribute it — deductions like rent, loans, and savings, plus a set **daily spending budget** (food & entertainment, everyday stuff).
+- `daily.html` — log daily expenses (breakfast, lunch, groceries, dinner...) as they happen, and see them tracked against the daily budget you allocated, day by day.
 - `savings.html` — savings goals: add as many goals as you want, each with its own target date. Shows % achieved, how much is still needed, and how much to save per month to hit the deadline.
 - `style.css` — all styling.
 - `app.js` — all the logic and formulas (well-commented — search for `FORMULA` to see every calculation).

@@ -48,8 +48,20 @@ function currentMonthKey(d = new Date()) {
   return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0");
 }
 
+/* === FORMULA: distribute income into deductions + a daily spending budget.
+   Unallocated = whatever's left after both — a true residual, not the daily pool.
+   Shared by the Monthly Budget page and the Daily Spending page. */
+function computeMonthlyAllocation(monthKey) {
+  const all = loadTransactions().filter((t) => t.date.startsWith(monthKey));
+  const totalIncome = all.filter((t) => t.type === "income").reduce((s, t) => s + t.amount, 0);
+  const totalDeduction = all.filter((t) => t.type === "deduction").reduce((s, t) => s + t.amount, 0);
+  const dailyBudget = all.filter((t) => t.type === "budget").reduce((s, t) => s + t.amount, 0);
+  const unallocated = totalIncome - totalDeduction - dailyBudget;
+  return { totalIncome, totalDeduction, dailyBudget, unallocated };
+}
+
 /* ============================================================
-   BUDGET PAGE (index.html)
+   BUDGET PAGE (index.html) — income & deductions -> leftover
    ============================================================ */
 
 function initBudgetPage() {
@@ -59,18 +71,17 @@ function initBudgetPage() {
   const monthInput = document.getElementById("month-select");
   const list = document.getElementById("ledger-list");
   const incomeFigure = document.getElementById("total-income");
-  const expenseFigure = document.getElementById("total-expense");
-  const balanceFigure = document.getElementById("balance-figure");
+  const deductionFigure = document.getElementById("total-deduction");
+  const dailyBudgetFigure = document.getElementById("daily-budget-figure");
+  const unallocatedFigure = document.getElementById("unallocated-figure");
   const breakdown = document.getElementById("category-breakdown");
   const emptyState = document.getElementById("empty-state");
-  const dailyAvg = document.getElementById("daily-avg");
-  const dailyLeft = document.getElementById("daily-left");
 
   monthInput.value = currentMonthKey();
 
   form.addEventListener("submit", (e) => {
     e.preventDefault();
-    const type = form.querySelector('input[name="kind"]:checked').value;
+    const type = form.querySelector('input[name="kind"]:checked').value; // "income" | "deduction" | "budget"
     const category = document.getElementById("txn-category").value.trim();
     const amount = parseFloat(document.getElementById("txn-amount").value);
     const date = document.getElementById("txn-date").value || new Date().toISOString().slice(0, 10);
@@ -99,35 +110,31 @@ function initBudgetPage() {
 
   function render() {
     const monthKey = monthInput.value || currentMonthKey();
-    const all = loadTransactions().filter((t) => t.date.startsWith(monthKey));
+    const all = loadTransactions().filter((t) => t.date.startsWith(monthKey) && t.type !== "daily");
     all.sort((a, b) => (a.date < b.date ? 1 : -1));
 
-    // === FORMULA: total income = SUM(amount) where type = income ===
-    const totalIncome = all.filter((t) => t.type === "income").reduce((s, t) => s + t.amount, 0);
-    // === FORMULA: total expenses = SUM(amount) where type = expense ===
-    const totalExpense = all.filter((t) => t.type === "expense").reduce((s, t) => s + t.amount, 0);
-    // === FORMULA: balance = total income - total expenses ===
-    const balance = totalIncome - totalExpense;
+    const { totalIncome, totalDeduction, dailyBudget, unallocated } = computeMonthlyAllocation(monthKey);
 
     incomeFigure.textContent = fmt(totalIncome);
-    expenseFigure.textContent = fmt(totalExpense);
-    balanceFigure.textContent = fmt(balance);
-    balanceFigure.className = "receipt-balance-figure " + (balance >= 0 ? "positive" : "negative");
+    deductionFigure.textContent = fmt(totalDeduction);
+    dailyBudgetFigure.textContent = fmt(dailyBudget);
+    unallocatedFigure.textContent = fmt(unallocated);
+    unallocatedFigure.className = "receipt-figure " + (unallocated < 0 ? "expense" : "");
 
-    // === FORMULA: category totals = GROUP BY category, SUM(amount), for expenses only ===
+    // === FORMULA: deduction totals = GROUP BY category, SUM(amount), for deductions only ===
     const catTotals = {};
-    all.filter((t) => t.type === "expense").forEach((t) => {
+    all.filter((t) => t.type === "deduction").forEach((t) => {
       catTotals[t.category] = (catTotals[t.category] || 0) + t.amount;
     });
     const catEntries = Object.entries(catTotals).sort((a, b) => b[1] - a[1]);
 
     breakdown.innerHTML = "";
     if (catEntries.length === 0) {
-      breakdown.innerHTML = '<p class="empty-state">Add an expense to see the breakdown.</p>';
+      breakdown.innerHTML = '<p class="empty-state">Add a deduction to see the breakdown.</p>';
     } else {
       catEntries.forEach(([cat, amt]) => {
-        // === FORMULA: category % of total expenses = category total / total expenses ===
-        const pct = totalExpense > 0 ? (amt / totalExpense) * 100 : 0;
+        // === FORMULA: category % of total deductions = category total / total deductions ===
+        const pct = totalDeduction > 0 ? (amt / totalDeduction) * 100 : 0;
         const row = document.createElement("div");
         row.className = "bar-row";
         row.innerHTML = `
@@ -141,24 +148,6 @@ function initBudgetPage() {
       });
     }
 
-    // === FORMULA: days elapsed / days in month, for a daily-average read ===
-    const [y, m] = monthKey.split("-").map(Number);
-    const daysInMonth = new Date(y, m, 0).getDate();
-    const today = new Date();
-    const isCurrentMonth = currentMonthKey(today) === monthKey;
-    const daysElapsed = isCurrentMonth ? today.getDate() : daysInMonth;
-    const daysRemaining = Math.max(daysInMonth - daysElapsed, 1);
-
-    // === FORMULA: average daily spend so far = total expenses / days elapsed ===
-    const avgDaily = totalExpense / daysElapsed;
-    // === FORMULA: suggested daily spend for the rest of the month = remaining balance / days remaining ===
-    const suggestedDaily = isCurrentMonth ? balance / daysRemaining : null;
-
-    dailyAvg.textContent = fmt(avgDaily) + " / day so far";
-    dailyLeft.textContent = isCurrentMonth
-      ? fmt(suggestedDaily) + " / day for the " + daysRemaining + " day(s) left"
-      : "Not the current month";
-
     // list
     list.innerHTML = "";
     if (all.length === 0) {
@@ -166,6 +155,8 @@ function initBudgetPage() {
     } else {
       emptyState.style.display = "none";
       all.forEach((t) => {
+        const cls = t.type === "income" ? "income" : t.type === "budget" ? "budget" : "expense";
+        const sign = t.type === "income" ? "+" : "-";
         const li = document.createElement("li");
         li.className = "ledger-item";
         li.innerHTML = `
@@ -173,7 +164,7 @@ function initBudgetPage() {
             <div class="ledger-category">${escapeHtml(t.category)}</div>
             <div class="ledger-meta">${t.date}${t.note ? " · " + escapeHtml(t.note) : ""}</div>
           </div>
-          <div class="ledger-amount ${t.type}">${t.type === "expense" ? "-" : "+"}${fmt(t.amount)}</div>
+          <div class="ledger-amount ${cls}">${sign}${fmt(t.amount)}</div>
           <button class="ledger-delete" data-delete="${t.id}" aria-label="Delete entry" title="Delete">✕</button>
         `;
         list.appendChild(li);
@@ -300,61 +291,113 @@ function initGoalsPage() {
 }
 
 /* ============================================================
-   DAILY VIEW PAGE (daily.html)
+   DAILY SPENDING PAGE (daily.html)
    ============================================================ */
 
 function initDailyPage() {
   const monthInput = document.getElementById("daily-month-select");
   if (!monthInput) return; // not on this page
 
+  const form = document.getElementById("daily-form");
   const container = document.getElementById("daily-list");
   const hideEmptyToggle = document.getElementById("hide-empty-days");
-  const sumIncome = document.getElementById("daily-sum-income");
-  const sumExpense = document.getElementById("daily-sum-expense");
-  const sumBalance = document.getElementById("daily-sum-balance");
+  const budgetFigure = document.getElementById("leftover-budget");
+  const spentFigure = document.getElementById("spent-so-far");
+  const remainingFigure = document.getElementById("remaining-figure");
+  const dailyAvg = document.getElementById("daily-avg");
+  const dailySuggested = document.getElementById("daily-suggested");
 
   monthInput.value = currentMonthKey();
+  const dateInput = document.getElementById("daily-date");
+  dateInput.value = new Date().toISOString().slice(0, 10);
+
+  const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const category = document.getElementById("daily-category").value.trim();
+    const amount = parseFloat(document.getElementById("daily-amount").value);
+    const date = dateInput.value || new Date().toISOString().slice(0, 10);
+    const note = document.getElementById("daily-note").value.trim();
+
+    if (!category || !amount || amount <= 0) return;
+
+    const all = loadTransactions();
+    all.push({ id: uid(), type: "daily", category, amount, date, note });
+    saveTransactions(all);
+
+    form.reset();
+    dateInput.value = date;
+    monthInput.value = date.slice(0, 7);
+    render();
+  });
 
   monthInput.addEventListener("change", render);
   hideEmptyToggle.addEventListener("change", render);
 
-  const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  container.addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-delete]");
+    if (!btn) return;
+    const all = loadTransactions().filter((t) => t.id !== btn.dataset.delete);
+    saveTransactions(all);
+    render();
+  });
 
   function render() {
     const monthKey = monthInput.value || currentMonthKey();
     const [y, m] = monthKey.split("-").map(Number);
     const daysInMonth = new Date(y, m, 0).getDate();
 
-    const all = loadTransactions().filter((t) => t.date.startsWith(monthKey));
+    // === FORMULA: this month's daily budget, allocated on the Monthly Budget page ===
+    const { dailyBudget } = computeMonthlyAllocation(monthKey);
 
-    // === FORMULA: group all entries by exact date ===
+    const dailyEntries = loadTransactions()
+      .filter((t) => t.type === "daily" && t.date.startsWith(monthKey))
+      .sort((a, b) => (a.date < b.date ? 1 : -1));
+
+    // === FORMULA: spent so far = SUM(amount) of this month's daily entries ===
+    const spent = dailyEntries.reduce((s, t) => s + t.amount, 0);
+    // === FORMULA: remaining = daily budget - spent so far ===
+    const remaining = dailyBudget - spent;
+
+    budgetFigure.textContent = fmt(dailyBudget);
+    spentFigure.textContent = fmt(spent);
+    remainingFigure.textContent = fmt(remaining);
+    remainingFigure.className = "receipt-balance-figure " + (remaining >= 0 ? "positive" : "negative");
+
+    // === FORMULA: days elapsed / days remaining in the month, for a daily-average read ===
+    const today = new Date();
+    const isCurrentMonth = currentMonthKey(today) === monthKey;
+    const daysElapsed = isCurrentMonth ? today.getDate() : daysInMonth;
+    const daysRemaining = Math.max(daysInMonth - daysElapsed, 1);
+
+    // === FORMULA: average daily spend so far = spent so far / days elapsed ===
+    const avgDaily = spent / daysElapsed;
+    // === FORMULA: suggested daily spend for the rest of the month = remaining / days remaining ===
+    const suggestedDaily = isCurrentMonth ? remaining / daysRemaining : null;
+
+    dailyAvg.textContent = fmt(avgDaily) + " / day so far";
+    dailySuggested.textContent = isCurrentMonth
+      ? fmt(suggestedDaily) + " / day for the " + daysRemaining + " day(s) left"
+      : "Not the current month";
+
+    // === FORMULA: group daily entries by exact date ===
     const byDate = {};
-    all.forEach((t) => {
+    dailyEntries.forEach((t) => {
       (byDate[t.date] = byDate[t.date] || []).push(t);
     });
-
-    // month totals, same formulas as the ledger page
-    const totalIncome = all.filter((t) => t.type === "income").reduce((s, t) => s + t.amount, 0);
-    const totalExpense = all.filter((t) => t.type === "expense").reduce((s, t) => s + t.amount, 0);
-    sumIncome.textContent = fmt(totalIncome);
-    sumExpense.textContent = fmt(totalExpense);
-    sumBalance.textContent = fmt(totalIncome - totalExpense);
 
     container.innerHTML = "";
     const hideEmpty = hideEmptyToggle.checked;
 
     for (let day = daysInMonth; day >= 1; day--) {
       const dateStr = `${monthKey}-${String(day).padStart(2, "0")}`;
-      const entries = (byDate[dateStr] || []).slice().sort((a, b) => (a.type < b.type ? 1 : -1));
+      const entries = byDate[dateStr] || [];
 
       if (entries.length === 0 && hideEmpty) continue;
 
-      // === FORMULA: daily net = SUM(income) - SUM(expense) for that date ===
-      const dayIncome = entries.filter((t) => t.type === "income").reduce((s, t) => s + t.amount, 0);
-      const dayExpense = entries.filter((t) => t.type === "expense").reduce((s, t) => s + t.amount, 0);
-      const dayNet = dayIncome - dayExpense;
-      const netClass = dayNet > 0 ? "positive" : dayNet < 0 ? "negative" : "zero";
-
+      // === FORMULA: daily total spent = SUM(amount) for that date ===
+      const dayTotal = entries.reduce((s, t) => s + t.amount, 0);
       const weekday = WEEKDAYS[new Date(dateStr + "T00:00:00").getDay()];
 
       const block = document.createElement("div");
@@ -362,7 +405,7 @@ function initDailyPage() {
       block.innerHTML = `
         <div class="day-head">
           <span><span class="day-date">${dateStr}</span><span class="day-weekday">${weekday}</span></span>
-          <span class="day-total ${netClass}">${entries.length ? fmt(dayNet) : "—"}</span>
+          <span class="day-total ${entries.length ? "negative" : "zero"}">${entries.length ? fmt(dayTotal) : "—"}</span>
         </div>
       `;
 
@@ -374,7 +417,10 @@ function initDailyPage() {
           row.className = "day-entry";
           row.innerHTML = `
             <span>${escapeHtml(t.category)}${t.note ? " · " + escapeHtml(t.note) : ""}</span>
-            <span class="amt ${t.type}">${t.type === "expense" ? "-" : "+"}${fmt(t.amount)}</span>
+            <span class="day-entry-right">
+              <span class="amt expense">-${fmt(t.amount)}</span>
+              <button class="ledger-delete" data-delete="${t.id}" aria-label="Delete entry" title="Delete">✕</button>
+            </span>
           `;
           list.appendChild(row);
         });
