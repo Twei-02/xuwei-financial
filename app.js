@@ -71,9 +71,6 @@ function initBudgetPage() {
   const monthInput = document.getElementById("month-select");
   const list = document.getElementById("ledger-list");
   const incomeFigure = document.getElementById("total-income");
-  const deductionFigure = document.getElementById("total-deduction");
-  const dailyBudgetFigure = document.getElementById("daily-budget-figure");
-  const unallocatedFigure = document.getElementById("unallocated-figure");
   const breakdown = document.getElementById("category-breakdown");
   const emptyState = document.getElementById("empty-state");
 
@@ -114,38 +111,51 @@ function initBudgetPage() {
     all.sort((a, b) => (a.date < b.date ? 1 : -1));
 
     const { totalIncome, totalDeduction, dailyBudget, unallocated } = computeMonthlyAllocation(monthKey);
-
     incomeFigure.textContent = fmt(totalIncome);
-    deductionFigure.textContent = fmt(totalDeduction);
-    dailyBudgetFigure.textContent = fmt(dailyBudget);
-    unallocatedFigure.textContent = fmt(unallocated);
-    unallocatedFigure.className = "receipt-figure " + (unallocated < 0 ? "expense" : "");
 
-    // === FORMULA: deduction totals = GROUP BY category, SUM(amount), for deductions only ===
-    const catTotals = {};
-    all.filter((t) => t.type === "deduction").forEach((t) => {
-      catTotals[t.category] = (catTotals[t.category] || 0) + t.amount;
+    // === FORMULA: distribution = every deduction/budget category, grouped, as a % of total income ===
+    const catTotals = {}; // category -> { amount, kind }
+    all.filter((t) => t.type === "deduction" || t.type === "budget").forEach((t) => {
+      if (!catTotals[t.category]) catTotals[t.category] = { amount: 0, kind: t.type };
+      catTotals[t.category].amount += t.amount;
     });
-    const catEntries = Object.entries(catTotals).sort((a, b) => b[1] - a[1]);
+    const catEntries = Object.entries(catTotals).sort((a, b) => b[1].amount - a[1].amount);
 
     breakdown.innerHTML = "";
-    if (catEntries.length === 0) {
-      breakdown.innerHTML = '<p class="empty-state">Add a deduction to see the breakdown.</p>';
+    if (totalIncome <= 0) {
+      breakdown.innerHTML = '<p class="empty-state">Add income to see it distributed.</p>';
     } else {
-      catEntries.forEach(([cat, amt]) => {
-        // === FORMULA: category % of total deductions = category total / total deductions ===
-        const pct = totalDeduction > 0 ? (amt / totalDeduction) * 100 : 0;
+      if (catEntries.length === 0) {
+        breakdown.innerHTML = '<p class="empty-state">Add a deduction or daily budget to see the distribution.</p>';
+      }
+      catEntries.forEach(([cat, info]) => {
+        const pct = (info.amount / totalIncome) * 100;
+        const barColor = info.kind === "budget" ? "var(--gold-500)" : "var(--brick-600)";
         const row = document.createElement("div");
         row.className = "bar-row";
         row.innerHTML = `
           <div class="bar-label-row">
             <span>${escapeHtml(cat)}</span>
-            <span class="amt">${fmt(amt)} · ${pct.toFixed(0)}%</span>
+            <span class="amt">${fmt(info.amount)} · ${pct.toFixed(0)}%</span>
           </div>
-          <div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div>
+          <div class="bar-track"><div class="bar-fill" style="width:${Math.min(pct, 100)}%; background:${barColor}"></div></div>
         `;
         breakdown.appendChild(row);
       });
+      // === FORMULA: unallocated = income - deductions - daily budget, as a % of income ===
+      if (unallocated !== 0) {
+        const pct = (unallocated / totalIncome) * 100;
+        const row = document.createElement("div");
+        row.className = "bar-row";
+        row.innerHTML = `
+          <div class="bar-label-row">
+            <span>${unallocated < 0 ? "Over-allocated" : "Unallocated"}</span>
+            <span class="amt">${fmt(unallocated)} · ${pct.toFixed(0)}%</span>
+          </div>
+          <div class="bar-track"><div class="bar-fill" style="width:${Math.min(Math.abs(pct), 100)}%; background:${unallocated < 0 ? "var(--brick-600)" : "var(--text-400)"}"></div></div>
+        `;
+        breakdown.appendChild(row);
+      }
     }
 
     // list

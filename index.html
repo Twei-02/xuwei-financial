@@ -35,31 +35,17 @@
 
 <main class="shell">
   <h1 class="page-title">Where the month's income goes</h1>
-  <p class="page-lede">Log your income, then distribute it: rent, savings, loans as deductions, and a set amount for daily spending — food, entertainment, the everyday stuff. That daily amount is what you'll track spending against, day to day.</p>
+  <p class="page-lede">Log your income, then distribute it: rent, savings, loans as deductions, and a set amount for daily spending — food, entertainment, the everyday stuff.</p>
 
   <div class="month-picker">
     <label for="month-select" class="receipt-label">Viewing</label>
     <input type="month" id="month-select" />
   </div>
 
-  <section class="receipt" aria-label="Monthly summary">
+  <section class="receipt" aria-label="Monthly income">
     <div class="receipt-row">
-      <span class="receipt-label">Total income</span>
-      <span class="receipt-figure income" id="total-income">RM 0.00</span>
-    </div>
-    <div class="receipt-row">
-      <span class="receipt-label">Total deductions</span>
-      <span class="receipt-figure expense" id="total-deduction">RM 0.00</span>
-    </div>
-    <hr class="receipt-divider" />
-    <div class="receipt-row">
-      <span class="receipt-balance-label">Allocated to daily spending</span>
-      <span class="receipt-balance-figure" id="daily-budget-figure" style="color:var(--gold-600)">RM 0.00</span>
-    </div>
-    <hr class="receipt-divider" />
-    <div class="receipt-row">
-      <span class="receipt-label">Unallocated</span>
-      <span class="receipt-figure" id="unallocated-figure">RM 0.00</span>
+      <span class="receipt-balance-label">Total income</span>
+      <span class="receipt-balance-figure positive" id="total-income">RM 0.00</span>
     </div>
   </section>
 
@@ -107,7 +93,7 @@
 
     <div>
       <div class="card" style="margin-bottom:20px">
-        <h2 class="card-title">Deduction breakdown</h2>
+        <h2 class="card-title">Income distribution</h2>
         <div id="category-breakdown"></div>
       </div>
 
