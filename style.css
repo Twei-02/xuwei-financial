@@ -142,14 +142,17 @@ body {
 }
 
 .backup-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
   font-family: var(--font-mono);
   font-size: 11.5px;
   letter-spacing: 0.03em;
-  background: transparent;
-  border: 1px solid rgba(248, 249, 243, 0.25);
-  color: rgba(248, 249, 243, 0.75);
-  padding: 5px 10px;
-  border-radius: 6px;
+  background: rgba(248, 249, 243, 0.05);
+  border: 1px solid rgba(248, 249, 243, 0.18);
+  color: rgba(248, 249, 243, 0.8);
+  padding: 6px 12px;
+  border-radius: 20px;
   cursor: pointer;
   transition: all 0.15s ease;
 }
@@ -157,6 +160,7 @@ body {
 .backup-btn:hover {
   border-color: var(--gold-500);
   color: var(--gold-500);
+  background: rgba(200, 155, 60, 0.1);
 }
 
 /* ---------- Daily view ---------- */
@@ -395,19 +399,23 @@ body {
 
 .radio-row {
   display: flex;
-  gap: 8px;
+  gap: 3px;
+  padding: 3px;
+  background: var(--paper-50);
+  border: 1px solid var(--line);
+  border-radius: 9px;
 }
 
 .radio-row label {
   flex: 1;
   text-align: center;
-  padding: 8px 10px;
-  border: 1px solid var(--line);
-  border-radius: 7px;
+  padding: 7px 10px;
+  border-radius: 6px;
   font-size: 13px;
+  font-weight: 500;
   cursor: pointer;
   color: var(--text-600);
-  transition: all 0.12s ease;
+  transition: background 0.15s ease, color 0.15s ease;
 }
 
 .radio-row input { display: none; }
@@ -415,15 +423,13 @@ body {
 .radio-row input:checked + span { font-weight: 600; }
 
 .radio-row label:has(input:checked)[data-kind="income"] {
-  background: var(--green-100);
-  border-color: var(--green-600);
-  color: var(--green-600);
+  background: var(--green-600);
+  color: #fff;
 }
 
 .radio-row label:has(input:checked)[data-kind="expense"] {
-  background: var(--brick-100);
-  border-color: var(--brick-600);
-  color: var(--brick-600);
+  background: var(--brick-600);
+  color: #fff;
 }
 
 .btn {
@@ -432,28 +438,43 @@ body {
   justify-content: center;
   gap: 6px;
   width: 100%;
-  padding: 10px 16px;
-  border-radius: 7px;
-  border: none;
-  background: var(--ink-900);
-  color: var(--paper-0);
+  padding: 11px 18px;
+  border-radius: 8px;
+  border: 1px solid var(--gold-600);
+  background: var(--gold-500);
+  color: var(--ink-900);
   font-family: var(--font-body);
   font-size: 14px;
   font-weight: 600;
+  letter-spacing: 0.01em;
   cursor: pointer;
-  transition: background 0.15s ease, transform 0.05s ease;
+  box-shadow: 0 1px 0 rgba(22, 36, 31, 0.08), 0 4px 10px rgba(200, 155, 60, 0.28);
+  transition: background 0.15s ease, box-shadow 0.15s ease, transform 0.05s ease;
 }
 
-.btn:hover { background: var(--ink-700); }
-.btn:active { transform: translateY(1px); }
+.btn:hover {
+  background: var(--gold-600);
+  box-shadow: 0 1px 0 rgba(22, 36, 31, 0.08), 0 6px 14px rgba(200, 155, 60, 0.36);
+}
+
+.btn:active {
+  transform: translateY(1px);
+  box-shadow: 0 1px 0 rgba(22, 36, 31, 0.08);
+}
 
 .btn-ghost {
-  background: transparent;
+  background: var(--card);
   color: var(--text-600);
   border: 1px solid var(--line);
+  box-shadow: none;
 }
 
-.btn-ghost:hover { background: var(--paper-50); color: var(--text-900); }
+.btn-ghost:hover {
+  background: var(--paper-50);
+  color: var(--text-900);
+  border-color: var(--text-400);
+  box-shadow: none;
+}
 
 /* ---------- Ledger list ---------- */
 
@@ -500,17 +521,27 @@ body {
 .ledger-amount.expense { color: var(--brick-600); }
 
 .ledger-delete {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
   background: none;
-  border: none;
+  border: 1px solid transparent;
   color: var(--text-400);
   cursor: pointer;
-  font-size: 16px;
+  font-size: 13px;
   line-height: 1;
-  padding: 4px 6px;
-  border-radius: 5px;
+  border-radius: 50%;
+  transition: all 0.15s ease;
 }
 
-.ledger-delete:hover { color: var(--brick-600); background: var(--brick-100); }
+.ledger-delete:hover {
+  color: var(--brick-600);
+  background: var(--brick-100);
+  border-color: var(--brick-600);
+}
 
 .empty-state {
   text-align: center;
